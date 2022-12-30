@@ -1,4 +1,18 @@
 from optmengine import *
+from random import randint
+
+def getRandom():
+    nom = 1.0*randint(1,999999999)
+    denom = 1.0*randint(1,999999999)
+    return nom/denom
+
+def getPoint():
+    #point = (getRandom(), getRandom())
+    #print(f'get the point : {point}')
+
+    return randint(1,100),randint(1,100)
+
+
 print("\n TESTANDO \n")
 #mocando valores:
 
@@ -37,8 +51,8 @@ print(direction(-20,-20))
 print("\n TESTANDO ARMIJO\n")
 print(stepSize(pontoCANTO,direction(3,2),10,.5,.5))
 
-#testando método gradiente
-
+#testando método gradiente:
+'''
 print("\n TESTANDO METODO GRADIENTE\n")
 print(gradientMethod((.1,.2)))
 print("\n")
@@ -48,4 +62,12 @@ print(gradientMethod((50,40)))
 print("\n")
 print(gradientMethod((500,400)))
 print("\n")
-print(gradientMethod((1000,1)))
+print(gradientMethod((1000,1.1)))
+print("\n")
+print(gradientMethod((1000,1000)))
+'''
+print("\n")
+print(gradientMethod(getPoint()))
+#testando tabela:
+print("\n"*3)
+simulate([getPoint() for i in range(10)],gradientMethod,"Tabela 1 Método Gradiente")

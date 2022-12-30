@@ -32,12 +32,13 @@ def sizeEvaluation(x1,x2,y1,y2):
     s2 = y2 - x2
     return np.sqrt(s1**2 + s2**2)
         
-def stepSize(state,direction, S = 100, beta = .5, sigma = .5,m = 0, iterationCap = 100):
+def stepSize(state,direction, S = 1000, beta = .5, sigma = .5,m = 0, iterationCap = 100):
     iterationRem = iterationCap - 1
     if iterationRem < 1:
-        return "Limite de iteracoes alcancado - Tamanho do Passo"
+        return stepSize(state,direction,np.sqrt(S),beta,sigma**2)
     state['stepSizeCalls'] += 1
-    newPoint = list(map(add,list(state['currentPoint']),[i * sigma*(beta**m)*S for i in list(direction)]))
+    stepLength = sigma*(beta**m)*S
+    newPoint = list(map(add,list(state['currentPoint']),[i * stepLength for i in list(direction)]))
     if(newPoint[0] > 0 and newPoint[1] > 0): 
         newValue = funcValue(newPoint[0],newPoint[1]) 
     else: newValue = np.inf
@@ -48,9 +49,9 @@ def stepSize(state,direction, S = 100, beta = .5, sigma = .5,m = 0, iterationCap
     else:
         state['currentPoint'] = (newPoint[0],newPoint[1])
         state['currentValue'] = newValue
-        return state 
+        return state, stepLength
 
-def gradientMethod(startingPoint, iteractionCap = 10000, epsolon = .00000001):
+def gradientMethod(startingPoint, iteractionCap = 10000, epsolon = .000001):
     state = {'startingPoint': startingPoint, 'iterations': 0, 'stepSizeCalls': 0, 'currentPoint': startingPoint, 'currentValue': funcValue(startingPoint[0],startingPoint[1]), 'residual': 0}
     searching = True
     while(searching):
@@ -60,12 +61,15 @@ def gradientMethod(startingPoint, iteractionCap = 10000, epsolon = .00000001):
         grdientValue = gradValue(point[0],point[1])
         descendValue = [i *(-1) for i in grdientValue]
         descendDirection = direction(descendValue[0],descendValue[1])
-        state = stepSize(state, descendDirection)
-        if state['iterations'] >= iteractionCap: 
+        state, stepDiff = stepSize(state, descendDirection)
+        #print(point) - #pra ver o ponto se aproximar do otimo
+        if state['iterations'] > iteractionCap: 
             searching = False 
-        if (startingValue - state['currentValue'] < epsolon and sizeEvaluation(point[0],point[1],state['currentPoint'][0],state['currentPoint'][1])): 
+            #print('iteration limit')
+        valueDiff = startingValue - state['currentValue']
+        if ( valueDiff < epsolon and stepDiff < epsolon ): 
             searching = False
-            print("optimal")
+            #print("optimal")
     
     splitValue = truncate(state['currentValue'],5)
     state['currentValue'] = splitValue[0]
@@ -87,7 +91,7 @@ def simulate(startingPointList, method, header):
     finalList = []
     for point in startingPointList:
         lineOutput = method(point)
-        finalList += [[lineOutput['startingPoint'],lineOutput['iterations'],lineOutput['stepSizeCalls'],lineOutput['currentPoint'],lineOutput['currentValue'],lineOutput['residual']]]
-    finalTable = tabulate(finalList, headers=["Ponto Inicial", "# de Iteracoes", "# de Cham de Armijo", "Ponto Otimo", "Avaliacao do Ponto Otimo", "Erro de Aproximacao"])
+        finalList += [[lineOutput['startingPoint'][0],lineOutput['startingPoint'][1],lineOutput['iterations'],lineOutput['stepSizeCalls'],lineOutput['currentPoint'][0],lineOutput['currentPoint'][1],lineOutput['currentValue'],lineOutput['residual']]]
+    finalTable = tabulate(finalList, headers=["Ponto Inicial(x1)","(x2)", "# de Iteracoes", "# de Cham de Armijo", "Ponto Otimo(x1)","(x2)", "Avaliacao do Ponto Otimo", "Erro de Aproximacao"],floatfmt=[".2f",".2f","","",".6f",".6f",".7f"])
     print(header)
     print(finalTable)
