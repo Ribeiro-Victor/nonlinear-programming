@@ -91,28 +91,14 @@ print("\n"*3)
 
 
 
+randomPoint = getPoint()
 
 
 
+simulate([canto,parede1,parede2,planalto,randomPoint],gradientMethod,"TABELA 1\n\nMÉTODO GRADIENTE")
 
-simulate([canto,parede1,parede2,planalto,getPoint()],gradientMethod,"TABELA 1 MÉTODO GRADIENTE")
+simulate([canto,parede1,parede2,planalto,randomPoint],newtonMethod,"TABELA 2\n\nMÉTODO DE NEWTON")
 
-simulate([canto,parede1,parede2,planalto,getPoint()],newtonMethod,"TABELA 2 MÉTODO DE NEWTON")
+#simulate([canto,parede1,parede2,planalto,randomPoint],bfgsMethod,"TABELA 3\n\nMÉTODO DE BFGS")
 
-simulate([canto,parede1,parede2,planalto,getPoint()],mockMethod,"TABELA 3 MÉTODO DAS DIREÇÕES FIXAS")
-
-"""
-while(True):
-    testPoint = getPLANALTO()
-    gradientValue = gradValue(testPoint[0],testPoint[1])
-    hessian = hessianValue(testPoint[0],testPoint[1])
-    evs = eigenValues(hessian)
-    inverted = np.linalg.inv(hessian)
-    descendValue = np.dot(inverted, gradientValue)
-    print(descendValue)
-"""
-
-  
-#print(algoGenSearch((.5,.5)))
-
-#print(algoGenSearch((.5,.5)))
+simulate([canto,parede1,parede2,planalto,randomPoint],mockMethod,"TABELA 4\n\nMÉTODO DAS DIREÇÕES FIXAS")
