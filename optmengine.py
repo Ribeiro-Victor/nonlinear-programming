@@ -76,7 +76,7 @@ def stepSize(state,direction, S , beta , sigma ,m = 0, iterationCap = 100):
         state['currentValue'] = newValue
         return state, stepLength
 
-def gradientMethod(startingPoint, iteractionCap = 10000, epsolon = .000001, S = 1, beta = .5, sigma = .5):
+def gradientMethod(startingPoint, iteractionCap = 10000, epsolon = .000001, S = 2.34, beta = .45, sigma = .1):
     state = {'startingPoint': startingPoint, 'iterations': 0, 'stepSizeCalls': 0, 'currentPoint': startingPoint, 'currentValue': funcValue(startingPoint[0],startingPoint[1]), 'residual': 0}
     searching = True
     stepDiff = S
@@ -102,7 +102,7 @@ def gradientMethod(startingPoint, iteractionCap = 10000, epsolon = .000001, S = 
     state['residual'] = splitValue[1]
     return state
 
-def newtonMethod(startingPoint, iteractionCap = 10000, epsolon = 0.00000001, S = 3, beta = .5, sigma = .5):
+def newtonMethod(startingPoint, iteractionCap = 10000, epsolon = 0.00000001, S = 1.15, beta = .1, sigma = .1):
     state = {'startingPoint': startingPoint, 'iterations': 0, 'stepSizeCalls': 0, 'currentPoint': startingPoint, 'currentValue': funcValue(startingPoint[0],startingPoint[1]), 'residual': 0}
     searching = True
     stepDiff = S
@@ -114,10 +114,10 @@ def newtonMethod(startingPoint, iteractionCap = 10000, epsolon = 0.00000001, S =
         hessian = hessianValue(point[0],point[1])
         inverted = np.linalg.inv(hessian)
         descendValue = np.dot(inverted, gradientValue)
-        switches = [-1,-1]
-        if point[0] > 1: switches[0] = 1
-        if point[1] > 1: switches[1] = 1
-        descendDirection = direction(descendValue[0]*switches[0],descendValue[1]*switches[1])
+        switches = [1,1]
+        if point[0] > 1: switches[0] = -1
+        if point[1] > 1: switches[1] = -1
+        descendDirection = direction(np.sqrt(descendValue[0]**2)*switches[0],np.sqrt(descendValue[1]**2)*switches[1])
         #print(point, "       ",descendDirection)
         state, stepDiff = stepSize(state, descendDirection,stepDiff * 10, beta, sigma)
         #print(point) - #pra ver o ponto se aproximar do otimo
@@ -137,10 +137,56 @@ def newtonMethod(startingPoint, iteractionCap = 10000, epsolon = 0.00000001, S =
     state['residual'] = splitValue[1]
     return state
 
-def otherMethod(startingPoint):
-    state = {'startingPoint': startingPoint, 'iterations': 0, 'stepSizeCalls': 0, 'currentPoint': startingPoint, 'currentValue': function(startingPoint), 'residual': 0}
+def bfgsMethod(startingPoint, iteractionCap = 10000, epsolon = 0.00000001, S = 3, beta = .5, sigma = .5):
+    state = {'startingPoint': startingPoint,'lastPoint':startingPoint, 'currentGradient': [0,0],'currentInverseHessian':np.matrix([[1,0],[0,1]]), 'iterations': 0, 'stepSizeCalls': 0, 'currentPoint': startingPoint, 'currentValue': funcValue(startingPoint[0],startingPoint[1]), 'residual': 0}
+    searching = True
+    stepDiff = S
+    while(searching):
+        state['iterations'] += 1
+        lastPoint = state['lastPoint']
+        point = state['currentPoint']
+        startingValue = state['currentValue']
+        gradientValue = gradValue(point[0],point[1])
+        lastGradient =state['currentGradient']
+        state['currentGradient'] = gradientValue
+        q = np.matrix([gradientValue[0] - lastGradient[0], gradientValue[1] - lastGradient[1]])
+        p = np.matrix([point[0] - lastPoint[0], point[1] - lastPoint[1]])
+        qt, pt = q.transpose(), p.transpose()
+        H = state['currentInverseHessian']
+        nextH = H + (1 + ((qt*H*q)[0][0])/(pt*q)[0][0])*(p*pt)[0][0]/(pt*q)[0][0] - (p*qt*H + H*q*pt)[0][0]/(pt*q)[0][0]
+        state['currentInverseHessian'] = nextH
+        descendValue = np.dot(nextH, gradientValue)
+        
+        
+        
+        #switches = [1,1]
+        #if point[0] > 1: switches[0] = -1
+        #if point[1] > 1: switches[1] = -1
+        descendDirection = direction(np.sqrt(descendValue[0]**2)*switches[0],np.sqrt(descendValue[1]**2)*switches[1])
+        #print(point, "       ",descendDirection)
+        state['lastPoint'] = state['currentPoint']
+        state, stepDiff = stepSize(state, descendDirection,stepDiff * 10, beta, sigma)
+        
+
+
+        #print(point) - #pra ver o ponto se aproximar do otimo
+        if state['iterations'] > iteractionCap: 
+            searching = False 
+            print('iteration limit')
+        valueDiff = startingValue - state['currentValue']
+        #print(valueDiff,stepDiff)
+        if ( valueDiff < epsolon and stepDiff < epsolon ):
+            #print("=====")
+            #print(valueDiff,stepDiff) 
+            searching = False
+            #print("optimal")
     
-def mockMethod(startingPoint, iteractionCap = 10000, epsolon = .000001, S = 1, beta = .5, sigma = .5):
+    splitValue = truncate(state['currentValue'],6)
+    state['currentValue'] = splitValue[0]
+    state['residual'] = splitValue[1]
+    return state
+
+def mockMethod(startingPoint, iteractionCap = 10000, epsolon = .000001, S = 1.3, beta = .4, sigma = .1):
     state = {'startingPoint': startingPoint, 'iterations': 0, 'stepSizeCalls': 0, 'currentPoint': startingPoint, 'currentValue': funcValue(startingPoint[0],startingPoint[1]), 'residual': 0}
     searching = True
     stepDiff = S
@@ -172,62 +218,6 @@ def simulate(startingPointList, method, header):
     for point in startingPointList:
         lineOutput = method(point)
         finalList += [[lineOutput['startingPoint'][0],lineOutput['startingPoint'][1],lineOutput['iterations'],lineOutput['stepSizeCalls'],lineOutput['currentPoint'][0],lineOutput['currentPoint'][1],lineOutput['currentValue'],lineOutput['residual']]]
-    finalTable = tabulate(finalList, headers=["X°(x1)","X°(x2)", "#Iteracoes", "#Cham.Armijo", "X*(x1)","X*(x2)", "f(X*)", "Erro de Aproximacao"],floatfmt=[".4f",".4f","","",".8f",".8f",".6f"])
+    finalTable = tabulate(finalList, headers=["X°(x1)","X°(x2)", "#Iteracoes", "#Cham.Armijo", "X*(x1)","X*(x2)", "f(X*)", "Erro de Aproximacao"],floatfmt=[".4f",".4f","","",".8f",".8f",".6f"],tablefmt="fancy_outline")
     print('\n',header,'\n')
     print(finalTable)
-
-
-"""
-
-Usando algoritmo evolutivo para encontrar os parâmetros S, beta e sigma do cálculo do passo de armijo no método do gradiente para um determinado ponto
-
-
-"""
-
-def initiateGen(population):
-    generated = []
-    for i in range(population):
-        newS, newBeta, newSigma = (random()/random()) + 1, random(), random()
-        generated += [{"S":newS, 'beta':newBeta,'sigma':newSigma, 'fitness':""}]
-    return generated
-
-def recombinate(parents):
-    childs = []
-    for index1 in range(len(parents)):
-        for index2 in range(index1 + 1,len(parents)):
-            pS1, pS2, pb1, pb2, ps1, ps2 = parents[index1]['S'], parents[index2]['S'], parents[index1]['beta'], parents[index2]['beta'], parents[index1]['sigma'], parents[index2]['sigma']
-            childS, childBeta, childSigma = pS1*random() + pS2*random() + 1, (pb1 + pb2)/2, (ps1 + ps2)/2
-            childs += [{'S': childS, 'beta': childBeta, 'sigma':childSigma, 'fitness':""}]
-    return childs
-
-
-
-def algoGenSearch(point, elite = 4, randomized = 2, generations = 300):
-    population = (elite + randomized)*(elite + randomized + 1)
-    currentPopulation = initiateGen(population)
-    searching = True
-    topOnes = []
-    while(searching):
-        generations -= 1
-        for individual in currentPopulation:
-            
-            evaluation = gradientMethod(point,S = individual['S'], beta = individual['beta'], sigma = individual['sigma'])
-            individual['fitness'] = evaluation['stepSizeCalls']
-            #alguma forma de inserir individual nos TopOnes
-            pushing = True
-            for i in range(len(topOnes)):
-                if topOnes[i]['fitness'] > individual['fitness'] and pushing: 
-                    topOnes.insert(i, individual)
-                    pushing = False
-            if pushing: topOnes += [individual]
-        #print(topOnes[0]['fitness'], topOnes[elite-1]['fitness'])
-        topOnes = topOnes[0:(elite)]
-        #print(topOnes)
-        if (generations < 1): 
-            print(generations)
-            searching = False
-        newOnes = initiateGen(randomized)
-        childs = recombinate(topOnes + newOnes)
-        currentPopulation = newOnes + childs
-        print(generations)    
-    return(topOnes)    
