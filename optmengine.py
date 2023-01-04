@@ -213,6 +213,37 @@ def mockMethod(startingPoint, iteractionCap = 10000, epsolon = .000001, S = 1.3,
     state['residual'] = splitValue[1]
     return state
 
+def mockMethod2(startingPoint, iteractionCap = 10000, epsolon = .000001, S = 1.3, beta = .4, sigma = .1):
+    state = {'startingPoint': startingPoint, 'iterations': 0, 'stepSizeCalls': 0, 'currentPoint': startingPoint, 'currentValue': funcValue(startingPoint[0],startingPoint[1]), 'residual': 0}
+    searching = True
+    stepDiff = S
+    while(searching):
+        state['iterations'] += 1
+        point = state['currentPoint']
+        startingValue = state['currentValue']
+        west, east, north, south = [-1,0], [1,0], [0,1], [0,-1]
+        westStep, eastStep, northStep, southStep = stepSize(state, west,stepDiff * 10, beta, sigma), stepSize(state, east,stepDiff * 10, beta, sigma),stepSize(state, north,stepDiff * 10, beta, sigma), stepSize(state, south,stepDiff * 10, beta, sigma)
+        larger = ({},0)
+        for step in [westStep, eastStep, northStep, southStep]:
+            if step[1] > larger[1]: larger = step
+       
+        
+        state, stepDiff = larger[0],larger[1]
+        #print(point) - #pra ver o ponto se aproximar do otimo
+        if state['iterations'] > iteractionCap: 
+            searching = False 
+            #print('iteration limit')
+        valueDiff = startingValue - state['currentValue']
+        if ( valueDiff < epsolon and stepDiff < epsolon ): 
+            searching = False
+            #print("optimal")
+    
+    splitValue = truncate(state['currentValue'],6)
+    state['currentValue'] = splitValue[0]
+    state['residual'] = splitValue[1]
+    return state
+
+
 def simulate(startingPointList, method, header):
     finalList = []
     for point in startingPointList:

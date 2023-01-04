@@ -32,7 +32,7 @@ def algoGenSearch(point, method, elite = 4, randomized = 2, generations = 300):
             #alguma forma de inserir individual nos TopOnes
             pushing = True
             for i in range(len(topOnes)):
-                if topOnes[i]['fitness'] > individual['fitness'] and pushing: 
+                if topOnes[i]['fitness'] > individual['fitness'] and evaluation['currentValue'] < .00000001 and pushing: 
                     topOnes.insert(i, individual)
                     pushing = False
             if pushing: topOnes += [individual]
