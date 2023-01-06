@@ -23,7 +23,7 @@ print("\n TESTANDO \n")
 
 pontoCANTO = {'startingPoint': (0.5,0.5), 'iterations': 0, 'stepSizeCalls': 0, 'currentPoint': (.5,.5), 'currentValue': funcValue(.5,.5), 'residual': 0}
 
-canto, parede1, parede2, planalto = getCANTO(), getPAREDE1(), getPAREDE2(), getPLANALTO()
+canto, parede1, parede2, planalto, randomPoint = getCANTO(), getPAREDE1(), getPAREDE2(), getPLANALTO(), getPoint()
 #testando evaluação:
 print("\n TESTANDO FUNÇÃO\n")
 print(funcValue(1000,200))
@@ -91,7 +91,7 @@ print("\n"*3)
 
 
 
-randomPoint = getPoint()
+
 
 
 
@@ -101,4 +101,9 @@ simulate([canto,parede1,parede2,planalto,randomPoint],newtonMethod,"TABELA 2\n\n
 
 #simulate([canto,parede1,parede2,planalto,randomPoint],bfgsMethod,"TABELA 3\n\nMÉTODO DE BFGS")
 
-simulate([canto,parede1,parede2,planalto,randomPoint],mockMethod,"TABELA 4\n\nMÉTODO DAS DIREÇÕES FIXAS")
+simulate([canto,parede1,parede2,planalto,randomPoint],mockMethod,"TABELA 5\n\nMÉTODO Dos 4 PLANOS")
+
+simulate([canto,parede1,parede2,planalto,randomPoint],mockMethod2,"TABELA 5\n\nMÉTODO DAS 4 DIREÇÕES")
+
+simulate([canto,parede1,parede2,planalto,randomPoint],mockMethod3,"TABELA 6\n\nMÉTODO DO 'EU SEI ONDE O ÓTIMO FICA'")
+
