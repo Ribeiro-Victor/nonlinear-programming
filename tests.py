@@ -101,5 +101,9 @@ simulate([canto,parede1,parede2,planalto,randomPoint],newtonMethod,"TABELA 2\n\n
 
 #simulate([canto,parede1,parede2,planalto,randomPoint],bfgsMethod,"TABELA 3\n\nMÉTODO DE BFGS")
 
+simulate([canto,parede1,parede2,planalto,randomPoint],mockMethod,"TABELA 5\n\nMÉTODO Dos 4 PLANOS")
+
 simulate([canto,parede1,parede2,planalto,randomPoint],mockMethod2,"TABELA 5\n\nMÉTODO DAS 4 DIREÇÕES")
+
+simulate([canto,parede1,parede2,planalto,randomPoint],mockMethod3,"TABELA 6\n\nMÉTODO DO 'EU SEI ONDE O ÓTIMO FICA'")
 

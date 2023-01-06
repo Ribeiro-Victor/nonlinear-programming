@@ -5,18 +5,11 @@ from random import random
 
 
 def funcValue(x1, x2):
-    #print(f'valorando para {x1} e {x2}')
-    try:
         return np.sqrt(np.log(x1)**2 + np.log(x2)**2)
-    except:
-        print("fora do domínio")
 
 def gradValue(x1,x2):
     denom = funcValue(x1,x2)
-    try:
-        return np.log(x1)/(denom*x1), np.log(x2)/(denom*x2)
-    except(err):
-        print(err)
+    return np.log(x1)/(denom*x1), np.log(x2)/(denom*x2)
 
 def hessianValue(x1,x2):
     if(x1 <= 0 or x2 <= 0 ): return (np.inf)*3
@@ -219,7 +212,6 @@ def mockMethod2(startingPoint, iteractionCap = 10000, epsolon = .000001, S = 1.3
     stepDiff = S
     while(searching):
         state['iterations'] += 1
-        point = state['currentPoint']
         startingValue = state['currentValue']
         west, east, north, south = [-1,0], [1,0], [0,1], [0,-1]
         westStep, eastStep, northStep, southStep = stepSize(state, west,stepDiff * 10, beta, sigma), stepSize(state, east,stepDiff * 10, beta, sigma),stepSize(state, north,stepDiff * 10, beta, sigma), stepSize(state, south,stepDiff * 10, beta, sigma)
@@ -229,6 +221,32 @@ def mockMethod2(startingPoint, iteractionCap = 10000, epsolon = .000001, S = 1.3
        
         
         state, stepDiff = larger[0],larger[1]
+        #print(point) - #pra ver o ponto se aproximar do otimo
+        if state['iterations'] > iteractionCap: 
+            searching = False 
+            #print('iteration limit')
+        valueDiff = startingValue - state['currentValue']
+        if ( valueDiff < epsolon and stepDiff < epsolon ): 
+            searching = False
+            #print("optimal")
+    
+    splitValue = truncate(state['currentValue'],6)
+    state['currentValue'] = splitValue[0]
+    state['residual'] = splitValue[1]
+    return state
+
+def mockMethod3(startingPoint, iteractionCap = 10000, epsolon = .000001, S = 1.3, beta = .4, sigma = .1):
+    state = {'startingPoint': startingPoint, 'iterations': 0, 'stepSizeCalls': 0, 'currentPoint': startingPoint, 'currentValue': funcValue(startingPoint[0],startingPoint[1]), 'residual': 0}
+    searching = True
+    stepDiff = S
+    while(searching):
+        state['iterations'] += 1
+        point = state['currentPoint']
+        startingValue = state['currentValue']
+        descendValue = [1 - point[0],1 - point[1]]
+        
+        
+        state, stepDiff = stepSize(state,direction(descendValue[0], descendValue[1]),stepDiff * 10, beta, sigma)
         #print(point) - #pra ver o ponto se aproximar do otimo
         if state['iterations'] > iteractionCap: 
             searching = False 
