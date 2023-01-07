@@ -2,10 +2,10 @@ import numpy as np
 from tabulate import tabulate
 from operator import add
 from random import random
-
+import matplotlib.pyplot as plt 
 
 def funcValue(x1, x2):
-        return np.sqrt(np.log(x1)**2 + np.log(x2)**2)
+    return np.sqrt(np.log(x1)**2 + np.log(x2)**2)
 
 def gradValue(x1,x2):
     denom = funcValue(x1,x2)
@@ -70,12 +70,15 @@ def stepSize(state,direction, S , beta , sigma ,m = 0, iterationCap = 100):
         return state, stepLength
 
 def gradientMethod(startingPoint, iteractionCap = 10000, epsolon = .000001, S = 2.34, beta = .45, sigma = .1):
-    state = {'startingPoint': startingPoint, 'iterations': 0, 'stepSizeCalls': 0, 'currentPoint': startingPoint, 'currentValue': funcValue(startingPoint[0],startingPoint[1]), 'residual': 0}
+    state = {'startingPoint': startingPoint, 'iterations': 0, 'stepSizeCalls': 0, 
+    'currentPoint': startingPoint, 'currentValue': funcValue(startingPoint[0],startingPoint[1]), 
+    'residual': 0, 'pointsStored': []}
     searching = True
     stepDiff = S
     while(searching):
         state['iterations'] += 1
         point = state['currentPoint']
+        state['pointsStored'].append(point)
         startingValue = state['currentValue']
         grdientValue = gradValue(point[0],point[1])
         descendValue = [i *(-1) for i in grdientValue]
@@ -96,12 +99,15 @@ def gradientMethod(startingPoint, iteractionCap = 10000, epsolon = .000001, S = 
     return state
 
 def newtonMethod(startingPoint, iteractionCap = 10000, epsolon = 0.00000001, S = 1.15, beta = .1, sigma = .1):
-    state = {'startingPoint': startingPoint, 'iterations': 0, 'stepSizeCalls': 0, 'currentPoint': startingPoint, 'currentValue': funcValue(startingPoint[0],startingPoint[1]), 'residual': 0}
+    state = {'startingPoint': startingPoint, 'iterations': 0, 'stepSizeCalls': 0, 
+    'currentPoint': startingPoint, 'currentValue': funcValue(startingPoint[0],startingPoint[1]), 
+    'residual': 0, 'pointsStored': []}    
     searching = True
     stepDiff = S
     while(searching):
         state['iterations'] += 1
         point = state['currentPoint']
+        state['pointsStored'].append(point)
         startingValue = state['currentValue']
         gradientValue = gradValue(point[0],point[1])
         hessian = hessianValue(point[0],point[1])
@@ -270,3 +276,86 @@ def simulate(startingPointList, method, header):
     finalTable = tabulate(finalList, headers=["X°(x1)","X°(x2)", "#Iteracoes", "#Cham.Armijo", "X*(x1)","X*(x2)", "f(X*)", "Erro de Aproximacao"],floatfmt=[".4f",".4f","","",".8f",".8f",".6f"],tablefmt="fancy_outline")
     print('\n',header,'\n')
     print(finalTable)
+
+def bfgs(H, p, q):
+    p_t = np.transpose(p)
+    q_t = np.transpose(q)
+    denominator = np.dot(p_t, q)
+    term_1 = (1+((np.linalg.multi_dot([q_t, H, q]))/denominator))
+    term_2 = (np.dot(p, p_t))/denominator
+    term_3 = ((np.dot(np.dot(p, q_t), H))+(np.dot(np.dot(H, q), p)))/denominator
+    return H + (term_1*term_2) - term_3
+
+def quasiNewtonMethod(startingPoint, iteractionCap = 10000, epsolon = 0.00000001, S = 1.15, beta = .1, sigma = .1):
+    state = {'startingPoint': startingPoint, 'iterations': 0, 'stepSizeCalls': 0, 
+    'currentPoint': startingPoint, 'currentValue': funcValue(startingPoint[0],startingPoint[1]), 
+    'residual': 0, 'pointsStored': []}   
+    searching = True
+    stepDiff = S
+    H = np.array([[1,0], [0,1]])
+    while(searching):
+        state['iterations'] += 1
+        
+        point = state['currentPoint']
+        state['pointsStored'].append(point)
+        startingValue = state['currentValue']
+        gradientValue = gradValue(point[0],point[1])
+        hessian = hessianValue(point[0],point[1])
+        
+        inverted = np.linalg.inv(hessian)
+        descendValue = np.dot(inverted, gradientValue)
+        directionVector = -1*(np.dot(H, gradientValue))
+        descendDirection = direction(directionVector[0], directionVector[1])
+        #print(point, "       ",descendDirection)
+        
+        lastPoint = state['currentPoint']
+        state, stepDiff = stepSize(state, descendDirection,stepDiff * 10, beta, sigma)
+        point = state['currentPoint']
+        lastGradient = gradientValue
+        gradientValue = gradValue(point[0],point[1])
+
+        p = np.subtract(point, lastPoint)
+        q = np.subtract(gradientValue, lastGradient)
+
+        H = bfgs(H, p, q)
+
+        #print(point) - #pra ver o ponto se aproximar do otimo
+        if state['iterations'] > iteractionCap: 
+            searching = False 
+            print('iteration limit')
+        valueDiff = startingValue - state['currentValue']
+        #print(valueDiff,stepDiff)
+        if ( valueDiff < epsolon and stepDiff < epsolon ):
+            #print("=====")
+            #print(valueDiff,stepDiff) 
+            searching = False
+            #print("optimal")
+    
+    splitValue = truncate(state['currentValue'],6)
+    state['currentValue'] = splitValue[0]
+    state['residual'] = splitValue[1]
+    return state
+
+def plot_opt_path(points):
+    '''Função para ilustrar uma curva de nível com os pontos que foram obtidos
+    durante a execução do método de otimização.\n
+    Entrada:
+        points: Array de tuplas, onde cada tupla representa um ponto (x1, x2).'''
+
+    x = [item[0] for item in points]
+    y = [item[1] for item in points]
+
+    max_x, max_y = max(x)+1, max(y)+1
+    min_x, min_y = max(min(x)-0.5, 0.0001), max(min(y)-0.5, 0.0001)
+
+    plt.figure()
+    plt.title('Ótimo em: '+str(points[-1])+'\n Em x iterações.')
+    X1 = np.linspace(min_x, max_x)
+    X2 = np.linspace(min_y, max_y)
+    X1, X2 = np.meshgrid(X1, X2)
+    Z = funcValue(X1, X2)
+    plt.contourf(X1,X2,Z,cmap='inferno')
+    plt.colorbar()
+    plt.plot(x, y,'^-w')
+    plt.xlabel('$x_1$'); plt.ylabel('$x_2$')
+    plt.show()
