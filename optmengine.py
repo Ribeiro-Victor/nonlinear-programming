@@ -336,11 +336,12 @@ def quasiNewtonMethod(startingPoint, iteractionCap = 10000, epsolon = 0.00000001
     state['residual'] = splitValue[1]
     return state
 
-def plot_opt_path(points):
+def plot_opt_path(points, iterations='**'):
     '''Função para ilustrar uma curva de nível com os pontos que foram obtidos
     durante a execução do método de otimização.\n
     Entrada:
-        points: Array de tuplas, onde cada tupla representa um ponto (x1, x2).'''
+        points: Array de tuplas, onde cada tupla representa um ponto (x1, x2).
+        iterations: Número de iterações até o ponto ótimo.'''
 
     x = [item[0] for item in points]
     y = [item[1] for item in points]
@@ -349,7 +350,7 @@ def plot_opt_path(points):
     min_x, min_y = max(min(x)-0.5, 0.0001), max(min(y)-0.5, 0.0001)
 
     plt.figure()
-    plt.title('Ótimo em: '+str(points[-1])+'\n Em x iterações.')
+    plt.title(f'Partindo de: {points[0]}\nÓtimo em: {points[-1]}\nEm {iterations} iterações.')
     X1 = np.linspace(min_x, max_x)
     X2 = np.linspace(min_y, max_y)
     X1, X2 = np.meshgrid(X1, X2)
@@ -358,4 +359,42 @@ def plot_opt_path(points):
     plt.colorbar()
     plt.plot(x, y,'^-w')
     plt.xlabel('$x_1$'); plt.ylabel('$x_2$')
+    plt.show()
+
+def plotFunction(x1, x2):
+    '''Dados os intervalos de x1 e x2, retorna os gráficos e curva de nível da função nesse intervalo.'''
+    fig = plt.figure(figsize=(24,8))
+    color = 'inferno'
+
+    # First subplot
+    ax = fig.add_subplot(1, 3, 1, projection='3d')
+
+    X1 = np.linspace(x1[0], x1[1])
+    X2 = np.linspace(x2[0], x2[1])
+    X1, X2 = np.meshgrid(X1, X2)
+    Z = funcValue(X1, X2)
+    ax.plot_surface(X1, X2, Z, rstride=1, cstride=1,
+                    cmap=color, edgecolor='none')
+    ax.set_xlabel('x1')
+    ax.set_ylabel('x2')
+    ax.set_zlabel('f')
+    ax.view_init(25, 35)
+
+    # Second subplot
+    ax = fig.add_subplot(1, 3, 2, projection='3d')
+
+    ax.plot_surface(X1, X2, Z, rstride=1, cstride=1,
+                    cmap=color, edgecolor='none')
+    ax.set_xlabel('x1')
+    ax.set_ylabel('x2')
+    ax.set_zlabel('f')
+    ax.view_init(15, 205)
+
+
+    # Third subplot - Contour line
+    ax = fig.add_subplot(1, 3, 3)
+    h = ax.contourf(X1, X2, Z, cmap=color)
+    plt.axis('scaled')
+    fig.colorbar(h, shrink=0.7)
+    
     plt.show()
