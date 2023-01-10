@@ -47,3 +47,13 @@ def algoGenSearch(point, method, elite = 4, randomized = 2, generations = 300):
         currentPopulation = newOnes + childs
         #print(generations)    
     return(topOnes[0])    
+
+def fullSearch(pointList, methodList, elite = 4, randomized = 2, generations = 300):
+    for method in methodList:
+        for point in pointList:
+            print(algoGenSearch(point, method, elite, randomized, generations))
+
+points = [getCANTO(getPAREDE1(),getPAREDE2(),getPLANALTO())]
+methods = [gradientMethod, newtonMethod, quasiNewtonMethod,mockMethod2]
+
+fullSearch(points,methods)
